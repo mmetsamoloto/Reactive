@@ -22,7 +22,12 @@ namespace Application.Acitivities
 
             public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
             {
-                return await _context.
+                var activity = await _context.Activities.FindAsync(request.Activity.Id);
+
+                activity.Title = request.Activity.Title ?? activity.Title;
+
+                await _context.SaveChangesAsync();
+                return Unit.Value;
             }
         }
 

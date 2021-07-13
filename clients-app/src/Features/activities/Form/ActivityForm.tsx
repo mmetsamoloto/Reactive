@@ -1,15 +1,24 @@
 import React, { ChangeEvent, useState } from 'react'
+import { useEffect } from 'react';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import { Button, Form, Segment } from 'semantic-ui-react'
+import LoadingComponent from '../../../App/layout/LoadingComponent';
 import { Activity } from '../../../App/Model/Activities'
+import { useStore } from '../../../App/stores/store';
+import { v4 as uuid } from 'uuid';
+import { observer } from 'mobx-react-lite';
 
 interface Props {
-    activity: Activity | undefined;
-    closeForm: () => void;
     createOrEdit: (activity: Activity) => void;
+    submitting: boolean;
 }
-export default function ActivityForm({ activity: selectedActivity, closeForm, createOrEdit }: Props) {
+export default observer(function ActivityForm() {
+    const history = useHistory();
+    const { activityStore } = useStore();
+    const { createActivity, updateActivity, loading, loadActivity, loadingInitial } = activityStore;
+    const { id } = useParams<{ id: string }>();
 
-    const initialState = selectedActivity ?? {
+    const [activity, setActivity] = useState({
         id: '',
         title: '',
         category: '',
@@ -18,18 +27,30 @@ export default function ActivityForm({ activity: selectedActivity, closeForm, cr
         city: '',
         venue: ''
 
-    }
-    const [activity, setActivity] = useState(initialState);
+    });
+
+    useEffect(() => {
+        if (id) loadActivity(id).then(activity => setActivity(activity!));
+    }, [id, loadActivity]);
 
     function handleSubmit() {
-        createOrEdit(activity);
+        if (activity.id.length === 0) {
+            let newActivity = {
+                ...activity,
+                id: uuid()
+            };
+            createActivity(newActivity).then(() => history.push('/activities/${newActivity.id}'))
+        } else {
+            updateActivity(activity).then(() => history.push('/activity/${activity.id}'))
+        }
     }
 
 
     function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
         const { name, value } = event.target;
         setActivity({ ...activity, [name]: value })
-    };
+    }
+    if (loadingInitial) return <LoadingComponent content="Loading activity" />
 
     return (
 
@@ -38,13 +59,13 @@ export default function ActivityForm({ activity: selectedActivity, closeForm, cr
                 <Form.Input placeholder='Title' value={activity.title} name='title' />
                 <Form.TextArea placeholder='Description' value={activity.description} name='Description' />
                 <Form.Input placeholder='Category' value={activity.category} name='Category' />
-                <Form.Input placeholder='Date' value={activity.date} name='Date' />
+                <Form.Input type='date' placeholder='Date' value={activity.date} name='Date' />
                 <Form.Input placeholder='City' value={activity.city} name='City' />
                 <Form.Input placeholder='Venue' value={activity.venue} name='Venue' />
                 <Button floated='right' positive type='submit' content='Submit' />
-                <Button onClick={closeForm} floated='right' type='button' content='Cancel' />
+                <Button as={Link} to='/activities' floated='right' type='button' content='Cancel' />
             </Form>
         </Segment>
     )
 
-}
+})

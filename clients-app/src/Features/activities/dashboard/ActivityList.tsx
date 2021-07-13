@@ -1,16 +1,24 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Button, Item, ItemHeader, Label, Segment } from "semantic-ui-react";
+import { setSyntheticTrailingComments } from "typescript";
 import { Activity } from "../../../App/Model/Activities";
+import { useStore } from "../../../App/stores/store";
 
 
 interface Props {
 
     activities: Activity[];
-    selectActivity: (id: string) => void;
     deleteActivity: (id: string) => void;
 }
-export default function ActivityList({ activities, selectActivity, deleteActivity }: Props) {
+export default function ActivityList({ activities, deleteActivity }: Props) {
 
+    // function handleDeleteActivity(e.syntheticEvent<HTMLButtonElement>, id: string) {
+    //     setSyntheticTrailingComments(e.currentTarget.name);
+    //     deleteActivity(id);
+
+
+    const { activityStore } = useStore();
     return (
         <Segment>
             <Item.Group divided>
@@ -25,7 +33,7 @@ export default function ActivityList({ activities, selectActivity, deleteActivit
                             <div>{activity.city},{activity.venue}</div>
                         </Item.Description>
                         <Item.Extra>
-                            <Button onClick={() => selectActivity(activity.id)} floated='right' content='View' color='blue' />
+                            <Button as={Link} to={'/activities/${activity.id}'} floated='right' content='View' color='blue' />
                             <Button onClick={() => deleteActivity(activity.id)} floated='right' content='Delete' color='red' />
                             <Label basic content={activity.category} />
 
@@ -40,6 +48,7 @@ export default function ActivityList({ activities, selectActivity, deleteActivit
 
     )
 }
+
 
 
 
